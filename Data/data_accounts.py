@@ -67,19 +67,19 @@ def gen_accounts(num_accounts=10):
     return ar
 
 
-def get_account_id(in_list_accounts, in_id=0):
+def get_account_id(in_id):
     DataAcResp = DataAccountResponse()
     DataAcResp.account = []
 
     ar = AccountResponse()
 
-    print(type(in_id))
-    for i in in_list_accounts.data.account:
-        print(type(i.account_id))
+
+    for i in list_accounts.data.account:
+        print(i.account_id)
         if str(i.account_id) == (in_id):
             DataAcResp.account.append(i)
-        ar.data = DataAcResp
-        return ar
+            ar.data = DataAcResp
+            return ar
 
 
 list_accounts = gen_accounts()

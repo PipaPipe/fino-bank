@@ -47,4 +47,4 @@ def get_accountsaccount_id(account_id, x_fapi_auth_date=None, x_fapi_customer_ip
 
     :rtype: AccountResponse
     """
-    return get_account_id(list_accounts, account_id)
+    return get_account_id(account_id)

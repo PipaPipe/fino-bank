@@ -8,7 +8,8 @@ from swagger_server.models import Account, AccountStatus, AccountType, DataAccou
 
 
 def gen_id():
-    str = ''.join([str(random.choice(string.digits)) for _ in range(20)])
+    id_str = ''.join([str(random.choice(string.digits)) for _ in range(20)])
+    return id_str
 
 
 def get_status():

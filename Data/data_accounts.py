@@ -84,7 +84,7 @@ def gen_accounts(num_accounts=10):
 
 
 def gen_amount():
-    return random.randint(0,100000)
+    return round(random.uniform(0, 100000), 2)
 
 
 def get_credit_debit_code():

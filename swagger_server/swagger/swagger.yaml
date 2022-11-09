@@ -376,9 +376,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OBRUErrorResponse'
-      security:
-      - PSUOAuth2Security:
-        - account
+#      security:
+#      - PSUOAuth2Security:
+#        - account
       x-openapi-router-controller: swagger_server.controllers.accounts_controller
   /accounts/{accountId}/balances:
     get:

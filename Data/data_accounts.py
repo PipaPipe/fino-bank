@@ -1,6 +1,5 @@
 import random, string
 
-
 from swagger_server.models import Account, AccountStatus, AccountType, DataAccountResponse, AccountResponse, \
     CashAccount, PartyIdentification
 
@@ -20,7 +19,6 @@ def get_type():
 def get_account_description(start=12):
     letters = string.ascii_uppercase
     return ''.join([random.choice(letters) for _ in range(start)])
-
 
 
 def get_account_details():
@@ -50,15 +48,15 @@ def get_servicer():
     pass
 
 
-def gen_accounts(num_accounts=5):
+def gen_accounts(num_accounts=10):
     DataAcResp = DataAccountResponse()
     DataAcResp.account = []
 
     ar = AccountResponse()
 
-    for _ in range(num_accounts):
+    for n in range(num_accounts):
         acc = Account()
-        acc.account_id = gen_id()
+        acc.account_id = n + 1
         acc.status = get_status()
         acc.account_type = get_type()
         acc.account_details = get_account_details()
@@ -69,12 +67,21 @@ def gen_accounts(num_accounts=5):
     return ar
 
 
+def get_account_id(in_list_accounts, in_id=0):
+    DataAcResp = DataAccountResponse()
+    DataAcResp.account = []
+
+    ar = AccountResponse()
+
+    print(type(in_id))
+    for i in in_list_accounts.data.account:
+        print(type(i.account_id))
+        if str(i.account_id) == (in_id):
+            DataAcResp.account.append(i)
+        ar.data = DataAcResp
+        return ar
 
 
-#acc.servicer = get_servicer()
+list_accounts = gen_accounts()
 
-
-
-
-
-
+# acc.servicer = get_servicer()

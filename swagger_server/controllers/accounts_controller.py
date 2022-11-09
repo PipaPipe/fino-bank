@@ -5,7 +5,7 @@ from swagger_server.models import Account, DataAccountResponse
 from swagger_server.models.account_response import AccountResponse  # noqa: E501
 from swagger_server.models.obru_error_response import OBRUErrorResponse  # noqa: E501
 from swagger_server import util
-from Data.data_accounts import gen_accounts
+from Data.data_accounts import gen_accounts, get_account_id, list_accounts
 
 
 def get_accounts(page=None, x_fapi_auth_date=None, x_fapi_customer_ip_address=None, x_fapi_interaction_id=None, x_customer_user_agent=None):  # noqa: E501
@@ -47,4 +47,4 @@ def get_accountsaccount_id(account_id, x_fapi_auth_date=None, x_fapi_customer_ip
 
     :rtype: AccountResponse
     """
-    return 'do some magic!'
+    return get_account_id(list_accounts, account_id)

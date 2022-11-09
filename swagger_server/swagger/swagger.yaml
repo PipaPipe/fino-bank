@@ -1,0 +1,3698 @@
+openapi: 3.0.3
+info:
+  title: Получение информации о счете клиента третьей стороной
+  description: "API получения информации о счете, операциях по счету и продуктах н\
+    а счете клиента третьей стороной для Среды Открытых банковских интерфейсов "
+  termsOfService: https://openbankingrussia.ru/terms/01
+  contact:
+    name: Ассоциация развития финансовых технологий (Ассоциация ФинТех)
+    url: https://fintechru.org
+    email: info@openbankingrussia.ru
+  license:
+    name: open-licence
+    url: https://openbankingrussia.ru
+  version: 1.3.3
+servers:
+- url: https://localhost:8080/open-banking/v1.3/aisp
+  description: Эмулятор Сервера Ресурсов ППИУ Песочница 0
+- url: https://localhost:8080/open-banking/v1.3/aisp
+  description: Эмулятор Сервера Ресурсов ППИУ Песочница
+paths:
+  /accounts:
+    get:
+      tags:
+      - Accounts
+      summary: Получение списка счетов
+      description: "Конечная точка позволяет СПИУ получать полный список счетов и\
+        \ их идентификаторы (accountId), которые были авторизованы Пользователем н\
+        а стороне ППИУ."
+      operationId: get_accounts
+      parameters:
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          default: 0
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: "Полный список счетов (с идентификаторами accountId), котор\
+            ые были авторизованы пользователем на стороне ППИУ"
+          headers:
+            x-fapi-interaction-id:
+              description: "RFC4122 UID, используемый в качестве идентификатора ко\
+                рреляции. Если необходимо, то ППИУ передает обратно значение идент\
+                ификатора корреляции в заголовке ответа x-fapi-interaction-id."
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            x-jws-signature:
+              description: Отделяемая подпись полезной нагрузки в формате JWS
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "401":
+          description: Заголовок авторизации отсутствует или неверный токен
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "403":
+          description: Токен имеет неверную область действия или была нарушена политика
+            безопасности
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "405":
+          description: "Сторонний Поставщик пытается получить доступ к ресурсу с п\
+            омощью метода, который не поддерживается"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "406":
+          description: "Запрос содержал параметр заголовка Accept, отличный от раз\
+            решенных media types, и набор символов, отличный от UTF-8"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "429":
+          description: "Операция была отклонена, так как слишком много запросов бы\
+            ло сделано в течение определенного периода времени"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Retry-After:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security: [
+            ]
+        
+      x-openapi-router-controller: swagger_server.controllers.accounts_controller
+  /accounts/{accountId}:
+    get:
+      tags:
+      - Accounts
+      summary: Получение детальной информации о счете по идентификатору accountId
+      description: Конечная точка позволяет СПИУ получать детальную информацию о счете
+        по идентификатору accountId (который был получен при вызове конечной точке
+        списка счетов GET /accounts)
+      operationId: get_accountsaccount_id
+      parameters:
+      - name: accountId
+        in: path
+        description: Идентификатор счета
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 1002001
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: "Полный список счетов (с идентификаторами accountId), котор\
+            ые были авторизованы пользователем на стороне ППИУ"
+          headers:
+            x-fapi-interaction-id:
+              description: "RFC4122 UID, используемый в качестве идентификатора ко\
+                рреляции. Если необходимо, то ППИУ передает обратно значение идент\
+                ификатора корреляции в заголовке ответа x-fapi-interaction-id."
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            x-jws-signature:
+              description: Отделяемая подпись полезной нагрузки в формате JWS
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "401":
+          description: Заголовок авторизации отсутствует или неверный токен
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "403":
+          description: Токен имеет неверную область действия или была нарушена политика
+            безопасности
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "405":
+          description: "Сторонний Поставщик пытается получить доступ к ресурсу с п\
+            омощью метода, который не поддерживается"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "406":
+          description: "Запрос содержал параметр заголовка Accept, отличный от раз\
+            решенных media types, и набор символов, отличный от UTF-8"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "429":
+          description: "Операция была отклонена, так как слишком много запросов бы\
+            ло сделано в течение определенного периода времени"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Retry-After:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.accounts_controller
+  /accounts/{accountId}/balances:
+    get:
+      tags:
+      - Balances
+      summary: Баланс банковского счета по идентификатору accountId
+      description: Конечная точка позволяет СПИУ получать информацию об остатке на
+        счете с идентификатором accountId
+      operationId: get_accountsaccount_id_balances
+      parameters:
+      - name: accountId
+        in: path
+        description: Идентификатор счета
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 1002001
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: Получение информации об остатке на счете с идентификатором
+            accountId
+          headers:
+            x-fapi-interaction-id:
+              description: "RFC4122 UID, используемый в качестве идентификатора ко\
+                рреляции. Если необходимо, то ППИУ передает обратно значение идент\
+                ификатора корреляции в заголовке ответа x-fapi-interaction-id."
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            x-jws-signature:
+              description: Отделяемая подпись полезной нагрузки в формате JWS
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "401":
+          description: Заголовок авторизации отсутствует или неверный токен
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "403":
+          description: Токен имеет неверную область действия или была нарушена политика
+            безопасности
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "405":
+          description: "Сторонний Поставщик пытается получить доступ к ресурсу с п\
+            омощью метода, который не поддерживается"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "406":
+          description: "Запрос содержал параметр заголовка Accept, отличный от раз\
+            решенных media types, и набор символов, отличный от UTF-8"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "429":
+          description: "Операция была отклонена, так как слишком много запросов бы\
+            ло сделано в течение определенного периода времени"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Retry-After:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.balances_controller
+  /balances:
+    get:
+      tags:
+      - Balances
+      summary: Балансы всех счетов
+      description: "Конечная точка позволяет СПИУ получать остаток по всем счетам\
+        , которые были авторизованы Пользователем для доступа с помощью согласия"
+      operationId: get_balances
+      parameters:
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          default: 0
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: "Получение информации об остатке по всем банковским счетам\
+            , которые Пользователь авторизовал с помощью согласия"
+          headers:
+            x-fapi-interaction-id:
+              description: "RFC4122 UID, используемый в качестве идентификатора ко\
+                рреляции. Если необходимо, то ППИУ передает обратно значение идент\
+                ификатора корреляции в заголовке ответа x-fapi-interaction-id."
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            x-jws-signature:
+              description: Отделяемая подпись полезной нагрузки в формате JWS
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "401":
+          description: Заголовок авторизации отсутствует или неверный токен
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "403":
+          description: Токен имеет неверную область действия или была нарушена политика
+            безопасности
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "405":
+          description: "Сторонний Поставщик пытается получить доступ к ресурсу с п\
+            омощью метода, который не поддерживается"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "406":
+          description: "Запрос содержал параметр заголовка Accept, отличный от раз\
+            решенных media types, и набор символов, отличный от UTF-8"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "429":
+          description: "Операция была отклонена, так как слишком много запросов бы\
+            ло сделано в течение определенного периода времени"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Retry-After:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.balances_controller
+  /accounts/{accountId}/transactions:
+    get:
+      tags:
+      - Transactions
+      summary: Ресурс операции по счету с идентификатором accountId
+      description: "Конечная точка извлекает ресурс операции по счету с идентифика\
+        тором accountId, который получается с помощью вызова конечной точки GET /accounts"
+      operationId: get_accountsaccount_id_transactions
+      parameters:
+      - name: accountId
+        in: path
+        description: Идентификатор счета
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 1002001
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          default: 0
+      - name: fromBookingDateTime
+        in: query
+        description: Дата и время начала фильтрации списка операций по счету
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ISODateTime'
+      - name: toBookingDateTime
+        in: query
+        description: Дата и время окончания фильтрации списка операций по счету
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ISODateTime'
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: Конечная точка извлекает ресурс операции по счету с идентификатором
+            accountId
+          headers:
+            x-fapi-interaction-id:
+              description: "RFC4122 UID, используемый в качестве идентификатора ко\
+                рреляции. Если необходимо, то ППИУ передает обратно значение идент\
+                ификатора корреляции в заголовке ответа x-fapi-interaction-id."
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            x-jws-signature:
+              description: Отделяемая подпись полезной нагрузки в формате JWS
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "401":
+          description: Заголовок авторизации отсутствует или неверный токен
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "403":
+          description: Токен имеет неверную область действия или была нарушена политика
+            безопасности
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "405":
+          description: "Сторонний Поставщик пытается получить доступ к ресурсу с п\
+            омощью метода, который не поддерживается"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "406":
+          description: "Запрос содержал параметр заголовка Accept, отличный от раз\
+            решенных media types, и набор символов, отличный от UTF-8"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "429":
+          description: "Операция была отклонена, так как слишком много запросов бы\
+            ло сделано в течение определенного периода времени"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Retry-After:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.transactions_controller
+  /transactions:
+    get:
+      tags:
+      - Transactions
+      summary: Список операций по счету по всем счетам
+      description: "Конечная точка позволяет СПИУ получить список операций по всем\
+        \ счетам, которые авторизованы пользователем с помощью согласия"
+      operationId: get_transactions
+      parameters:
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          default: 0
+      - name: fromBookingDateTime
+        in: query
+        description: Дата и время начала фильтрации списка операций по счету
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ISODateTime'
+      - name: toBookingDateTime
+        in: query
+        description: Дата и время окончания фильтрации списка операций по счету
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ISODateTime'
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: "Конечная точка позволяет получить список операций по счету\
+            \ по всем счетам, которые авторизованы пользователем с помощью согласи\
+            я"
+          headers:
+            x-fapi-interaction-id:
+              description: "RFC4122 UID, используемый в качестве идентификатора ко\
+                рреляции. Если необходимо, то ППИУ передает обратно значение идент\
+                ификатора корреляции в заголовке ответа x-fapi-interaction-id."
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            x-jws-signature:
+              description: Отделяемая подпись полезной нагрузки в формате JWS
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "401":
+          description: Заголовок авторизации отсутствует или неверный токен
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "403":
+          description: Токен имеет неверную область действия или была нарушена политика
+            безопасности
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "405":
+          description: "Сторонний Поставщик пытается получить доступ к ресурсу с п\
+            омощью метода, который не поддерживается"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "406":
+          description: "Запрос содержал параметр заголовка Accept, отличный от раз\
+            решенных media types, и набор символов, отличный от UTF-8"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "429":
+          description: "Операция была отклонена, так как слишком много запросов бы\
+            ло сделано в течение определенного периода времени"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Retry-After:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.transactions_controller
+  /accounts/{accountId}/product:
+    get:
+      tags:
+      - Products
+      summary: Информация о финансовом продукте по идентификатору счета
+      description: Конечная точка позволяет получить информацию о финансовом продукте
+        на счете Пользователя
+      operationId: get_account_account_id_product
+      parameters:
+      - name: accountId
+        in: path
+        description: Идентификатор счета
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: 1002001
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          default: 0
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: Запрос успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountProductResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Что-то пошло не так на стороне Стороннего поставщика.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.products_controller
+  /products:
+    get:
+      tags:
+      - Products
+      summary: Список приобретенных финансовых продуктов
+      description: "Конечная точка позволяет получить информацию о финансовых прод\
+        уктах по всем счетам, которые были авторизованы Пользователем для доступа\
+        \ с помощью согласия"
+      operationId: get_accounts_product_list
+      parameters:
+      - name: page
+        in: query
+        description: Номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          default: 0
+      - name: x_fapi_auth_date
+        in: header
+        description: "Время последнего входа Пользователя в систему с TPP. Значени\
+          е предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Нап\
+          ример, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: "Mon, 26 Aug 2019 12:23:11 GMT"
+      - name: x_fapi_customer_ip_address
+        in: header
+        description: "IP-адрес Пользователя, если Пользователь в данный момент под\
+          ключен к Стороннему Поставщику (залогинен в приложении Стороннего Постав\
+          щика)."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_fapi_interaction_id
+        in: header
+        description: "RFC4122 UID, используемый в качестве идентификатора корреляц\
+          ии. Если необходимо, то ППИУ передает обратно значение идентификатора ко\
+          рреляции в заголовке ответа x-fapi-interaction-id."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: x_customer_user_agent
+        in: header
+        description: "В заголовке указывается тип устройства (user-agent), который\
+          \ использует Пользователь. Сторонний Поставщик может заполнить это поле\
+          \ значением типа устройства (user-agent), указанным Пользователем. Если\
+          \ Пользователь использует мобильное приложение Стороннего Поставщика, Ст\
+          оронний Поставщик проверяет, что строка типа устройства (user-agent) отл\
+          ичается от строки типа устройства (user-agent) на основе браузера."
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: ""
+      responses:
+        "200":
+          description: Запрос успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsProductListResponse'
+        "400":
+          description: "Запрос имеет неверное, отсутствующее или несовместимое тел\
+            о JSON, параметры URL или поля заголовка"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+        "404":
+          description: "Сторонний Поставщик пытается получить ресурс, который указ\
+            ан в спецификации, но не реализован на стороне ППИУ, либо ресурс, кото\
+            рый не определен"
+          headers:
+            x-fapi-interaction-id:
+              style: simple
+              explode: false
+              schema:
+                type: string
+        "500":
+          description: Что-то пошло не так на стороне Стороннего поставщика.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OBRUErrorResponse'
+      security:
+      - PSUOAuth2Security:
+        - account
+      x-openapi-router-controller: swagger_server.controllers.products_controller
+components:
+  schemas:
+    AccountStatus:
+      type: string
+      description: Статус счета
+      enum:
+      - Enabled
+      - Disabled
+      - Deleted
+    ISODateTime:
+      type: string
+      description: Формат даты и времени
+      format: date-time
+      example: 2021-06-05T15:15:13Z
+    ActiveOrHistoricCurrencyCode:
+      pattern: "^[A-Z]{3,3}"
+      type: string
+      description: "Код валюты, соответствующий международного стандарта ISO 4217"
+      example: RUB
+    AccountType:
+      type: string
+      description: Тип счета
+      enum:
+      - Business
+      - Personal
+    AccountIdentificationCode:
+      type: string
+      description: Схема идентификации счета
+      example: RU.CBR.BBAN
+      enum:
+      - RU.CBR.BBAN
+      - RU.CBR.EPID
+      - RU.CBR.ORID
+      - RU.CBR.PAN
+      - RU.CBR.MTEL
+    CashAccount:
+      required:
+      - identification
+      - schemeName
+      type: object
+      properties:
+        name:
+          maxLength: 70
+          type: string
+          description: "Наименование счета, присвоенное учреждением, обслуживающим\
+            \ счет, по согласованию с владельцем счета  для обеспечения дополнител\
+            ьных средств идентификации счета"
+          example: Основной счет
+        schemeName:
+          $ref: '#/components/schemas/AccountIdentificationCode'
+        identification:
+          maxLength: 256
+          type: string
+          description: "Идентификатор счета соответствующий схеме идентификации, и\
+            звестный владельцу счета (номер банковского счета, номер карты, номер\
+            \ телефона ...)"
+          example: "40817810621234570000"
+      additionalProperties: false
+      description: Идентификация счета
+      example:
+        identification: "40817810621234570000"
+        name: Основной счет
+        schemeName: RU.CBR.BBAN
+    CountryCode:
+      pattern: "^[A-Z]{2,2}"
+      type: string
+      description: Код страны
+      example: RU
+    PartyIdentificationCode:
+      maxLength: 35
+      type: string
+      description: Схема идентификации юридического или физического лица
+      enum:
+      - RU.CBR.TXID
+      - RU.CBR.LEI
+      - RU.CBR.PASP
+      - RU.CBR.CLID
+      - RU.CBR.QRST
+      - RU.CBR.TAXT
+      - RU.CBR.OGRN
+      - RU.CBR.SNILS
+      - RU.CBR.PAN
+      - RU.CBR.MTEL
+    IdentificationType:
+      required:
+      - identification
+      - schemeName
+      type: object
+      properties:
+        schemeName:
+          $ref: '#/components/schemas/PartyIdentificationCode'
+        identification:
+          maxLength: 35
+          type: string
+          description: "Уникальный и однозначный идентификатор участника, присвоен\
+            ный идентифицирующей организацией."
+          example: "7728240240"
+      additionalProperties: false
+      description: Идентификация юридического или физического лица
+      example:
+        identification: "7728240240"
+        schemeName: RU.CBR.TXID
+    PartyIdentification:
+      required:
+      - Identification
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 160
+          type: string
+          description: Наименование организации или имя физического лица
+          example: Наименование организации или физического лица
+        mobileNumber:
+          maxLength: 15
+          type: string
+          description: Номер мобильного телефона
+          example: "79206001010"
+        countryOfResidence:
+          $ref: '#/components/schemas/CountryCode'
+        birthDate:
+          $ref: '#/components/schemas/ISODateTime'
+        Identification:
+          minItems: 1
+          type: array
+          description: Идентификация юридического или физического лица.
+          items:
+            $ref: '#/components/schemas/IdentificationType'
+      additionalProperties: false
+      description: "Информация об участнике, используемая для идентификации юридич\
+        еского или физического лица"
+      example:
+        mobileNumber: "79206001010"
+        name: Наименование организации или физического лица
+        Identification:
+        - identification: "7728240240"
+          schemeName: RU.CBR.TXID
+        - identification: "7728240240"
+          schemeName: RU.CBR.TXID
+        countryOfResidence: RU
+        birthDate: null
+    FinancialInstitutionIdentificationCode:
+      maxLength: 35
+      type: string
+      description: Схема идентификации финансового учреждения
+      enum:
+      - RU.CBR.BICFI
+      - RU.CBR.BIC
+    BranchAndFinancialInstitutionIdentification:
+      required:
+      - identification
+      - schemeName
+      type: object
+      properties:
+        schemeName:
+          $ref: '#/components/schemas/FinancialInstitutionIdentificationCode'
+        identification:
+          maxLength: 35
+          type: string
+          description: Банковский идентификационный код (БИК) или другой идентификатор
+            финансового учреждения
+          example: "9612123"
+      additionalProperties: false
+      description: Идентификация финансового учреждения
+      example:
+        identification: "9612123"
+        schemeName: RU.CBR.BICFI
+    Account:
+      required:
+      - accountId
+      - accountType
+      - currency
+      type: object
+      properties:
+        accountId:
+          maxLength: 40
+          type: string
+          description: "Уникальный и неизменный идентификатор, используемый для ид\
+            ентификации ресурса"
+          example: "1002001"
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        statusUpdateDateTime:
+          $ref: '#/components/schemas/ISODateTime'
+        currency:
+          $ref: '#/components/schemas/ActiveOrHistoricCurrencyCode'
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        accountDescription:
+          maxLength: 35
+          type: string
+          description: "Краткое описание назначения счета или продукта, привязанно\
+            го к счету"
+          example: Розничные операции
+        AccountDetails:
+          type: array
+          description: Идентификация счета
+          items:
+            $ref: '#/components/schemas/CashAccount'
+        Owner:
+          $ref: '#/components/schemas/PartyIdentification'
+        Servicer:
+          $ref: '#/components/schemas/BranchAndFinancialInstitutionIdentification'
+      additionalProperties: false
+      description: Счет
+      example:
+        accountId: "1002001"
+        Owner:
+          mobileNumber: "79206001010"
+          name: Наименование организации или физического лица
+          Identification:
+          - identification: "7728240240"
+            schemeName: RU.CBR.TXID
+          - identification: "7728240240"
+            schemeName: RU.CBR.TXID
+          countryOfResidence: RU
+          birthDate: null
+        Servicer:
+          identification: "9612123"
+          schemeName: RU.CBR.BICFI
+        accountDescription: Розничные операции
+        statusUpdateDateTime: 2021-06-05T15:15:13Z
+        accountType: Business
+        currency: RUB
+        status: Enabled
+        AccountDetails:
+        - identification: "40817810621234570000"
+          name: Основной счет
+          schemeName: RU.CBR.BBAN
+        - identification: "40817810621234570000"
+          name: Основной счет
+          schemeName: RU.CBR.BBAN
+    DataAccountResponse:
+      type: object
+      properties:
+        Account:
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+      additionalProperties: false
+      description: Полезная нагрузка ответа на запрос о списке счетов
+      example:
+        Account:
+        - accountId: "1002001"
+          Owner:
+            mobileNumber: "79206001010"
+            name: Наименование организации или физического лица
+            Identification:
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            countryOfResidence: RU
+            birthDate: null
+          Servicer:
+            identification: "9612123"
+            schemeName: RU.CBR.BICFI
+          accountDescription: Розничные операции
+          statusUpdateDateTime: 2021-06-05T15:15:13Z
+          accountType: Business
+          currency: RUB
+          status: Enabled
+          AccountDetails:
+          - identification: "40817810621234570000"
+            name: Основной счет
+            schemeName: RU.CBR.BBAN
+          - identification: "40817810621234570000"
+            name: Основной счет
+            schemeName: RU.CBR.BBAN
+        - accountId: "1002001"
+          Owner:
+            mobileNumber: "79206001010"
+            name: Наименование организации или физического лица
+            Identification:
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            countryOfResidence: RU
+            birthDate: null
+          Servicer:
+            identification: "9612123"
+            schemeName: RU.CBR.BICFI
+          accountDescription: Розничные операции
+          statusUpdateDateTime: 2021-06-05T15:15:13Z
+          accountType: Business
+          currency: RUB
+          status: Enabled
+          AccountDetails:
+          - identification: "40817810621234570000"
+            name: Основной счет
+            schemeName: RU.CBR.BBAN
+          - identification: "40817810621234570000"
+            name: Основной счет
+            schemeName: RU.CBR.BBAN
+    AccountResponse:
+      maxProperties: 3
+      minProperties: 3
+      required:
+      - Data
+      - Links
+      - Meta
+      type: object
+      properties:
+        Data:
+          $ref: '#/components/schemas/DataAccountResponse'
+      additionalProperties: false
+      description: Список счетов и их идентификаторы
+      example:
+        Data:
+          Account:
+          - accountId: "1002001"
+            Owner:
+              mobileNumber: "79206001010"
+              name: Наименование организации или физического лица
+              Identification:
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              countryOfResidence: RU
+              birthDate: null
+            Servicer:
+              identification: "9612123"
+              schemeName: RU.CBR.BICFI
+            accountDescription: Розничные операции
+            statusUpdateDateTime: 2021-06-05T15:15:13Z
+            accountType: Business
+            currency: RUB
+            status: Enabled
+            AccountDetails:
+            - identification: "40817810621234570000"
+              name: Основной счет
+              schemeName: RU.CBR.BBAN
+            - identification: "40817810621234570000"
+              name: Основной счет
+              schemeName: RU.CBR.BBAN
+          - accountId: "1002001"
+            Owner:
+              mobileNumber: "79206001010"
+              name: Наименование организации или физического лица
+              Identification:
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              countryOfResidence: RU
+              birthDate: null
+            Servicer:
+              identification: "9612123"
+              schemeName: RU.CBR.BICFI
+            accountDescription: Розничные операции
+            statusUpdateDateTime: 2021-06-05T15:15:13Z
+            accountType: Business
+            currency: RUB
+            status: Enabled
+            AccountDetails:
+            - identification: "40817810621234570000"
+              name: Основной счет
+              schemeName: RU.CBR.BBAN
+            - identification: "40817810621234570000"
+              name: Основной счет
+              schemeName: RU.CBR.BBAN
+    OBRUErrorResponseErrorCode:
+      type: string
+      description: Низкоуровневое текстовое описание ошибки
+      x-namespaced-enum:
+      - RU.SBRF.Field.Expected
+      - RU.SBRF.Field.Invalid
+      - RU.SBRF.Field.InvalidDate
+      - RU.SBRF.Field.Missing
+      - RU.SBRF.Field.Unexpected
+      - RU.SBRF.Header.Invalid
+      - RU.SBRF.Header.Missing
+      - RU.SBRF.Reauthenticate
+      - RU.SBRF.Resource.ConsentMismatch
+      - RU.SBRF.Resource.InvalidConsentStatus
+      - RU.SBRF.Resource.InvalidFormat
+      - RU.SBRF.Resource.NotFound
+      - RU.SBRF.Rules.AfterCutOffDateTime
+      - RU.SBRF.Rules.DuplicateReference
+      - RU.SBRF.Signature.Invalid
+      - RU.SBRF.Signature.InvalidClaim
+      - RU.SBRF.Signature.Malformed
+      - RU.SBRF.Signature.Missing
+      - RU.SBRF.Signature.MissingClaim
+      - RU.SBRF.Signature.Unexpected
+      - RU.SBRF.UnexpectedError
+      - RU.SBRF.Unsupported.AccountIdentifier
+      - RU.SBRF.Unsupported.AccountSecondaryIdentifier
+      - RU.SBRF.Unsupported.Currency
+      - RU.SBRF.Unsupported.Frequency
+      - RU.SBRF.Unsupported.LocalInstrument
+      - RU.SBRF.Unsupported.Scheme
+    OBRUError:
+      required:
+      - errorCode
+      - message
+      type: object
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/OBRUErrorResponseErrorCode'
+        message:
+          maxLength: 500
+          type: string
+          description: "Описание ошибки. Например, 'Обязательное поле не указано'"
+        path:
+          maxLength: 500
+          type: string
+          description: "Путь к элементу с ошибкой в JSON объекте. Рекомендуемое, н\
+            о не обязательное поле"
+        url:
+          type: string
+          description: "URL для помощи в устранении проблемы, Также через URL можн\
+            о предоставлять дополнительную информацию"
+          format: uri
+      additionalProperties: false
+      description: Контейнер с ошибкой
+    OBRUErrorResponse:
+      required:
+      - Errors
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          maxLength: 40
+          minLength: 1
+          type: string
+          description: "Высокоуровневый текстовый код ошибки, необходимый для клас\
+            сификации"
+        id:
+          maxLength: 40
+          minLength: 1
+          type: string
+          description: "Уникальный идентификатор ошибки, для целей аудита, в случа\
+            е неизвестных / не классифицированных ошибок"
+        message:
+          maxLength: 500
+          minLength: 1
+          description: "Краткое сообщение об ошибке. Например, «что-то не так с пр\
+            едоставленными параметрами запроса»"
+        Errors:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/OBRUError'
+      additionalProperties: false
+      description: Контейнер с детализацией ошибки
+    ActiveCurrencyAndAmountSimpleType:
+      pattern: "^\\d{1,13}\\.\\d{2}"
+      type: string
+      description: Сумма денежных средств
+      example: "200.00"
+    ActiveOrHistoricCurrencyAndAmount:
+      required:
+      - amount
+      - currency
+      type: object
+      properties:
+        amount:
+          $ref: '#/components/schemas/ActiveCurrencyAndAmountSimpleType'
+        currency:
+          $ref: '#/components/schemas/ActiveOrHistoricCurrencyCode'
+      additionalProperties: false
+      description: Сумма денежных средств и код валюты
+      example:
+        amount: "200.00"
+        currency: RUB
+    CreditDebitCode:
+      type: string
+      description: Признак дебета/кредита
+      enum:
+      - Credit
+      - Debit
+    Balance:
+      required:
+      - Amount
+      - accountId
+      type: object
+      properties:
+        accountId:
+          maxLength: 40
+          type: string
+          description: "Уникальный и неизменный идентификатор, используемый для ид\
+            ентификации ресурса счета"
+          example: "1002001"
+        Amount:
+          $ref: '#/components/schemas/ActiveOrHistoricCurrencyAndAmount'
+        creditDebitIndicator:
+          $ref: '#/components/schemas/CreditDebitCode'
+      additionalProperties: false
+      description: Остаток на счете
+      example:
+        accountId: "1002001"
+        Amount:
+          amount: "200.00"
+          currency: RUB
+        creditDebitIndicator: Credit
+    DataBalanceResponse:
+      type: object
+      properties:
+        Balance:
+          minItems: 0
+          type: array
+          items:
+            $ref: '#/components/schemas/Balance'
+      additionalProperties: false
+      description: Полезная нагрузка ответа на запрос об остатке на счете
+      example:
+        Balance:
+        - accountId: "1002001"
+          Amount:
+            amount: "200.00"
+            currency: RUB
+          creditDebitIndicator: Credit
+        - accountId: "1002001"
+          Amount:
+            amount: "200.00"
+            currency: RUB
+          creditDebitIndicator: Credit
+    BalanceResponse:
+      maxProperties: 3
+      minProperties: 3
+      required:
+      - Data
+      - Links
+      - Meta
+      type: object
+      properties:
+        Data:
+          $ref: '#/components/schemas/DataBalanceResponse'
+      additionalProperties: false
+      description: Ответ на запрос об остатке на счете
+      example:
+        Data:
+          Balance:
+          - accountId: "1002001"
+            Amount:
+              amount: "200.00"
+              currency: RUB
+            creditDebitIndicator: Credit
+          - accountId: "1002001"
+            Amount:
+              amount: "200.00"
+              currency: RUB
+            creditDebitIndicator: Credit
+    TransactionStatusCode:
+      type: string
+      description: Статус записи операции по счету
+      enum:
+      - AcceptedSettlementCompleted
+      - AcceptedSettlementInProcess
+      - Pending
+      - Rejected
+      - AcceptedWithoutPosting
+      - AcceptedCreditSettlementCompleted
+    Transaction:
+      required:
+      - Amount
+      - accountId
+      - status
+      type: object
+      properties:
+        accountId:
+          maxLength: 40
+          type: string
+          description: "Уникальный и неизменный идентификатор, используемый для ид\
+            ентификации ресурса accounts"
+          example: "1002001"
+        transactionIdentification:
+          maxLength: 210
+          type: string
+          description: "Уникальный и неизменный идентификатор, используемый для ид\
+            ентификации рессурса операции по счету"
+          example: 12345-TID-001
+        creditDebitIndicator:
+          $ref: '#/components/schemas/CreditDebitCode'
+        status:
+          $ref: '#/components/schemas/TransactionStatusCode'
+        valueDateTime:
+          $ref: '#/components/schemas/ISODateTime'
+        Amount:
+          $ref: '#/components/schemas/ActiveOrHistoricCurrencyAndAmount'
+        Balance:
+          $ref: '#/components/schemas/Balance'
+        Debtor:
+          $ref: '#/components/schemas/PartyIdentification'
+        DebtorAgent:
+          $ref: '#/components/schemas/BranchAndFinancialInstitutionIdentification'
+        DebtorAccount:
+          $ref: '#/components/schemas/CashAccount'
+        CreditorAgent:
+          $ref: '#/components/schemas/BranchAndFinancialInstitutionIdentification'
+        CreditorAccount:
+          $ref: '#/components/schemas/CashAccount'
+        Creditor:
+          $ref: '#/components/schemas/PartyIdentification'
+        RemittanceInformation:
+          type: string
+          description: Назначение платежа
+          example: Перевод денежных средств между своими счетами
+      additionalProperties: false
+      description: Операция по счету
+      example:
+        DebtorAccount:
+          identification: "40817810621234570000"
+          name: Основной счет
+          schemeName: RU.CBR.BBAN
+        CreditorAgent: null
+        Amount:
+          amount: "200.00"
+          currency: RUB
+        CreditorAccount: null
+        creditDebitIndicator: Credit
+        accountId: "1002001"
+        Debtor:
+          mobileNumber: "79206001010"
+          name: Наименование организации или физического лица
+          Identification:
+          - identification: "7728240240"
+            schemeName: RU.CBR.TXID
+          - identification: "7728240240"
+            schemeName: RU.CBR.TXID
+          countryOfResidence: RU
+          birthDate: null
+        RemittanceInformation: Перевод денежных средств между своими счетами
+        valueDateTime: 2021-06-05T15:15:13Z
+        DebtorAgent:
+          identification: "9612123"
+          schemeName: RU.CBR.BICFI
+        Balance:
+          accountId: "1002001"
+          Amount:
+            amount: "200.00"
+            currency: RUB
+          creditDebitIndicator: Credit
+        Creditor: null
+        transactionIdentification: 12345-TID-001
+        status: AcceptedSettlementCompleted
+    DataTransactionResponse:
+      type: object
+      properties:
+        Transaction:
+          minItems: 0
+          type: array
+          description: Список операций по счету
+          items:
+            $ref: '#/components/schemas/Transaction'
+      additionalProperties: false
+      description: Полезная нагрузка ответа на запрос об операциях по счету
+      example:
+        Transaction:
+        - DebtorAccount:
+            identification: "40817810621234570000"
+            name: Основной счет
+            schemeName: RU.CBR.BBAN
+          CreditorAgent: null
+          Amount:
+            amount: "200.00"
+            currency: RUB
+          CreditorAccount: null
+          creditDebitIndicator: Credit
+          accountId: "1002001"
+          Debtor:
+            mobileNumber: "79206001010"
+            name: Наименование организации или физического лица
+            Identification:
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            countryOfResidence: RU
+            birthDate: null
+          RemittanceInformation: Перевод денежных средств между своими счетами
+          valueDateTime: 2021-06-05T15:15:13Z
+          DebtorAgent:
+            identification: "9612123"
+            schemeName: RU.CBR.BICFI
+          Balance:
+            accountId: "1002001"
+            Amount:
+              amount: "200.00"
+              currency: RUB
+            creditDebitIndicator: Credit
+          Creditor: null
+          transactionIdentification: 12345-TID-001
+          status: AcceptedSettlementCompleted
+        - DebtorAccount:
+            identification: "40817810621234570000"
+            name: Основной счет
+            schemeName: RU.CBR.BBAN
+          CreditorAgent: null
+          Amount:
+            amount: "200.00"
+            currency: RUB
+          CreditorAccount: null
+          creditDebitIndicator: Credit
+          accountId: "1002001"
+          Debtor:
+            mobileNumber: "79206001010"
+            name: Наименование организации или физического лица
+            Identification:
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            - identification: "7728240240"
+              schemeName: RU.CBR.TXID
+            countryOfResidence: RU
+            birthDate: null
+          RemittanceInformation: Перевод денежных средств между своими счетами
+          valueDateTime: 2021-06-05T15:15:13Z
+          DebtorAgent:
+            identification: "9612123"
+            schemeName: RU.CBR.BICFI
+          Balance:
+            accountId: "1002001"
+            Amount:
+              amount: "200.00"
+              currency: RUB
+            creditDebitIndicator: Credit
+          Creditor: null
+          transactionIdentification: 12345-TID-001
+          status: AcceptedSettlementCompleted
+    TransactionResponse:
+      maxProperties: 3
+      minProperties: 3
+      required:
+      - Data
+      - Links
+      - Meta
+      type: object
+      properties:
+        Data:
+          $ref: '#/components/schemas/DataTransactionResponse'
+      additionalProperties: false
+      description: Ответ на запрос информации об операциях по счету
+      example:
+        Data:
+          Transaction:
+          - DebtorAccount:
+              identification: "40817810621234570000"
+              name: Основной счет
+              schemeName: RU.CBR.BBAN
+            CreditorAgent: null
+            Amount:
+              amount: "200.00"
+              currency: RUB
+            CreditorAccount: null
+            creditDebitIndicator: Credit
+            accountId: "1002001"
+            Debtor:
+              mobileNumber: "79206001010"
+              name: Наименование организации или физического лица
+              Identification:
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              countryOfResidence: RU
+              birthDate: null
+            RemittanceInformation: Перевод денежных средств между своими счетами
+            valueDateTime: 2021-06-05T15:15:13Z
+            DebtorAgent:
+              identification: "9612123"
+              schemeName: RU.CBR.BICFI
+            Balance:
+              accountId: "1002001"
+              Amount:
+                amount: "200.00"
+                currency: RUB
+              creditDebitIndicator: Credit
+            Creditor: null
+            transactionIdentification: 12345-TID-001
+            status: AcceptedSettlementCompleted
+          - DebtorAccount:
+              identification: "40817810621234570000"
+              name: Основной счет
+              schemeName: RU.CBR.BBAN
+            CreditorAgent: null
+            Amount:
+              amount: "200.00"
+              currency: RUB
+            CreditorAccount: null
+            creditDebitIndicator: Credit
+            accountId: "1002001"
+            Debtor:
+              mobileNumber: "79206001010"
+              name: Наименование организации или физического лица
+              Identification:
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              - identification: "7728240240"
+                schemeName: RU.CBR.TXID
+              countryOfResidence: RU
+              birthDate: null
+            RemittanceInformation: Перевод денежных средств между своими счетами
+            valueDateTime: 2021-06-05T15:15:13Z
+            DebtorAgent:
+              identification: "9612123"
+              schemeName: RU.CBR.BICFI
+            Balance:
+              accountId: "1002001"
+              Amount:
+                amount: "200.00"
+                currency: RUB
+              creditDebitIndicator: Credit
+            Creditor: null
+            transactionIdentification: 12345-TID-001
+            status: AcceptedSettlementCompleted
+    ProductType:
+      type: string
+      description: Тип продукта
+      example: loanIndividual
+      enum:
+      - depositIndividual | Депозит физического лица
+      - depositlegalEntity | Депозит юридического лица
+      - CAindividual | Текущий счет физического лица
+      - CALegalEntity | Расчетный счет юридического лица
+      - debitCard | Дебетовая карта
+      - creditCard | Кредитная карта
+      - loanCar | Автокредит
+      - loanIndividual | Кредит физическому лицу
+      - loanLegalEntity | Кредит юридического лица
+      - mortage | Ипотека
+      - investment | Инвестиционный продукт
+      - Other | Другой продукт
+    Brand:
+      required:
+      - applicationUri
+      - brandName
+      type: object
+      properties:
+        brandName:
+          maxLength: 140
+          minLength: 1
+          type: string
+          description: "Наименование собственного брэнда продукта или брэнд органи\
+            зации, который используется для продвижения продукта"
+          example: МойБанкГрупп
+        applicationUri:
+          maxLength: 2048
+          type: string
+          description: URL-адрес для получения информации об условиях приобретения
+            продукта
+          example: https://mybank.ru/products/credit-card/applay
+      description: Торговая марка продукта
+      example:
+        brandName: МойБанкГрупп
+        applicationUri: https://mybank.ru/products/credit-card/applay
+    PeriodUnit:
+      type: string
+      description: Единица измерения периода
+      example: Месяц
+      enum:
+      - Hour
+      - Day
+      - Week
+      - Month
+      - Quarter
+      - HalfYear
+      - Year
+      - AcademicTerm
+    ProductDetails:
+      type: object
+      properties:
+        active:
+          type: boolean
+          description: Признак активности продукта
+        feeFreeLength:
+          type: integer
+          description: Продолжительность бесплатного или рекламного периода
+          example: 3
+        feeFreeLengthPeriod:
+          $ref: '#/components/schemas/PeriodUnit'
+        comments:
+          type: string
+          description: Комментарии и описания
+      description: Детальное описание информации о продукте
+      example:
+        comments: comments
+        active: true
+        feeFreeLength: 3
+        feeFreeLengthPeriod: Месяц
+    Rate:
+      pattern: "^(-?\\d{1,3}){1}(\\.\\d{1,4}){0,1}$"
+      type: string
+      description: Процентная ставка
+      example: "5"
+    FrequencyType:
+      type: string
+      description: Частота применения в периоде времени
+      example: Monthly
+      enum:
+      - Daily
+      - Weekly
+      - Monthly
+      - Quarterly
+      - Yearly
+      - PerOccurrence
+      - Other
+    FeeChargeDetail:
+      required:
+      - calculationFrequency
+      - feeType
+      type: object
+      properties:
+        feeAmount:
+          $ref: '#/components/schemas/ActiveCurrencyAndAmountSimpleType'
+        feeRate:
+          $ref: '#/components/schemas/Rate'
+        applicationFrequency:
+          $ref: '#/components/schemas/FrequencyType'
+        calculationFrequency:
+          $ref: '#/components/schemas/FrequencyType'
+      description: "Подробная информация о комиссиях, сборах, пени и штрафах"
+      example:
+        feeAmount: "200.00"
+        applicationFrequency: Monthly
+        calculationFrequency: null
+        feeRate: "5"
+    FeeChargeCap:
+      required:
+      - minMaxType
+      type: object
+      properties:
+        minMaxType:
+          type: string
+          description: Указывает минимальная или максимальная комиссия
+          enum:
+          - Minimum
+          - Maximum
+        feeCapOccurrence:
+          type: integer
+          description: "Комиссия / сборы / пени / штрафы фиксируются в зависимости\
+            \ от количества случаев, а не ограничиваются определенной суммой"
+        feeCapAmount:
+          $ref: '#/components/schemas/ActiveCurrencyAndAmountSimpleType'
+        cappingPeriod:
+          $ref: '#/components/schemas/PeriodUnit'
+      description: "Подробная информация о любых ограничениях (минимальных / макси\
+        мальных сборах), которые применяются к конкретной комиссии / сбору / пени\
+        \ / штрафу"
+      example:
+        cappingPeriod: null
+        feeCapAmount: null
+        feeCapOccurrence: 0
+        minMaxType: Minimum
+    OtherFeesCharges:
+      required:
+      - FeeChargeDetail
+      type: object
+      properties:
+        tariffName:
+          maxLength: 350
+          minLength: 1
+          type: string
+          description: Название тарифа
+          example: Лучший тариф
+        FeeChargeDetail:
+          type: array
+          description: "Подробная информация о комиссиях, сборах, пени и штрафах"
+          items:
+            $ref: '#/components/schemas/FeeChargeDetail'
+        FeeChargeCap:
+          type: array
+          description: "Подробная информация о любых ограничениях (минимальных / м\
+            аксимальных сборах), которые применяются к конкретной комиссии / сбору\
+            \ / пени / штрафу"
+          items:
+            $ref: '#/components/schemas/FeeChargeCap'
+        comments:
+          type: string
+          description: Комментарии и описания
+      additionalProperties: false
+      description: "Информация о комиссиях и сборах, в том числе по тарифу обслужи\
+        вания"
+      example:
+        FeeChargeCap:
+        - cappingPeriod: null
+          feeCapAmount: null
+          feeCapOccurrence: 0
+          minMaxType: Minimum
+        - cappingPeriod: null
+          feeCapAmount: null
+          feeCapOccurrence: 0
+          minMaxType: Minimum
+        comments: comments
+        tariffName: Лучший тариф
+        FeeChargeDetail:
+        - feeAmount: "200.00"
+          applicationFrequency: Monthly
+          calculationFrequency: null
+          feeRate: "5"
+        - feeAmount: "200.00"
+          applicationFrequency: Monthly
+          calculationFrequency: null
+          feeRate: "5"
+    ISOYearMonth:
+      pattern: "^(1[0-2]|0[1-9]|\\d)\\/([2-9]\\d[1-9]\\d|[1-9]\\d)$"
+      type: string
+    TrackData1:
+      required:
+      - TrackValue
+      type: object
+      properties:
+        trackNumber:
+          pattern: "[0-9]"
+          type: string
+          description: Номер дорожки карты
+        trackValue:
+          maxLength: 140
+          minLength: 1
+          type: string
+          description: Содержание дорожки карты или его эквивалент
+      additionalProperties: false
+      description: Данные магнитной дорожки платежной карты или их эквивалент
+      example:
+        trackNumber: trackNumber
+        trackValue: trackValue
+    CSCManagement1Code:
+      type: string
+      enum:
+      - CSCPresent
+      - CSCByPass
+      - CSCUnread
+      - NoCSC
+    CardSecurityInformation1:
+      required:
+      - CSCManagement
+      type: object
+      properties:
+        CSCManagement:
+          $ref: '#/components/schemas/CSCManagement1Code'
+        CSCValue:
+          pattern: "[0-9]{3,4}"
+          type: string
+          description: Код безопасности карты
+          example: "123"
+      additionalProperties: false
+      description: "Код безопасности карты (CSC), связанный с выполнением операции\
+        \ по карте"
+      example:
+        CSCManagement: CSCPresent
+        CSCValue: "123"
+    PlainCardData1:
+      required:
+      - PAN
+      - expiryDate
+      type: object
+      properties:
+        PAN:
+          pattern: "[0-9]{8,28}"
+          type: string
+          description: Основной учетный номер карты (PAN) или номер карты
+          example: '*0001'
+        cardSequenceNumber:
+          pattern: "[0-9]{2,3}"
+          type: string
+          description: Идентификатор карты среди множества карт с одинаковым номером
+            карты (PAN)
+          example: "01"
+        effectiveDate:
+          $ref: '#/components/schemas/ISOYearMonth'
+        expiryDate:
+          $ref: '#/components/schemas/ISOYearMonth'
+        serviceCode:
+          pattern: "[0-9]{3}"
+          type: string
+          description: Услуги по карте в соответствии с ISO 7813
+          example: "121"
+        TrackData:
+          type: array
+          description: Данные магнитной дорожки платежной карты или их эквивалент
+          items:
+            $ref: '#/components/schemas/TrackData1'
+        CardSecurityCode:
+          $ref: '#/components/schemas/CardSecurityInformation1'
+      additionalProperties: false
+      description: "Конфиденциальные данные, связанные с выполнением операции по к\
+        арте"
+      example:
+        expiryDate: null
+        serviceCode: "121"
+        PAN: '*0001'
+        cardSequenceNumber: "01"
+        effectiveDate: effectiveDate
+        TrackData:
+        - trackNumber: trackNumber
+          trackValue: trackValue
+        - trackNumber: trackNumber
+          trackValue: trackValue
+        CardSecurityCode:
+          CSCManagement: CSCPresent
+          CSCValue: "123"
+    CountryCodeNumeric:
+      pattern: "[0-9]{3}"
+      type: string
+      description: Код страны по ISO-3166-1 в форме трехзначного цифрового кода
+      example: "643"
+    GenericIdentification1:
+      required:
+      - identification
+      type: object
+      properties:
+        identification:
+          maxLength: 35
+          minLength: 1
+          type: string
+          description: "Уникальный и однозначный идентификатор, присвоенный иденти\
+            фицирующей организацией."
+          example: VISA
+        schemeName:
+          maxLength: 35
+          minLength: 1
+          type: string
+          description: Наименование идентификационной схемы
+        issuer:
+          maxLength: 35
+          minLength: 1
+          type: string
+          description: "Организация, установившая идентификацию"
+      additionalProperties: false
+      description: "Информация, связанная с идентификацией"
+      example:
+        identification: VISA
+        schemeName: schemeName
+        issuer: issuer
+    PaymentCard4:
+      type: object
+      properties:
+        PlainCardData:
+          $ref: '#/components/schemas/PlainCardData1'
+        cardCountryCode:
+          $ref: '#/components/schemas/CountryCodeNumeric'
+        CardBrand:
+          $ref: '#/components/schemas/GenericIdentification1'
+        additionalCardData:
+          maxLength: 70
+          minLength: 1
+          type: string
+          description: "Дополнительные сведения, специфичные для эмитента карты"
+      additionalProperties: false
+      example:
+        PlainCardData:
+          expiryDate: null
+          serviceCode: "121"
+          PAN: '*0001'
+          cardSequenceNumber: "01"
+          effectiveDate: effectiveDate
+          TrackData:
+          - trackNumber: trackNumber
+            trackValue: trackValue
+          - trackNumber: trackNumber
+            trackValue: trackValue
+          CardSecurityCode:
+            CSCManagement: CSCPresent
+            CSCValue: "123"
+        cardCountryCode: "643"
+        CardBrand:
+          identification: VISA
+          schemeName: schemeName
+          issuer: issuer
+        additionalCardData: additionalCardData
+    PaymentCards4:
+      type: object
+      properties:
+        PaymentCards:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentCard4'
+      additionalProperties: false
+      example:
+        PaymentCards:
+        - PlainCardData:
+            expiryDate: null
+            serviceCode: "121"
+            PAN: '*0001'
+            cardSequenceNumber: "01"
+            effectiveDate: effectiveDate
+            TrackData:
+            - trackNumber: trackNumber
+              trackValue: trackValue
+            - trackNumber: trackNumber
+              trackValue: trackValue
+            CardSecurityCode:
+              CSCManagement: CSCPresent
+              CSCValue: "123"
+          cardCountryCode: "643"
+          CardBrand:
+            identification: VISA
+            schemeName: schemeName
+            issuer: issuer
+          additionalCardData: additionalCardData
+        - PlainCardData:
+            expiryDate: null
+            serviceCode: "121"
+            PAN: '*0001'
+            cardSequenceNumber: "01"
+            effectiveDate: effectiveDate
+            TrackData:
+            - trackNumber: trackNumber
+              trackValue: trackValue
+            - trackNumber: trackNumber
+              trackValue: trackValue
+            CardSecurityCode:
+              CSCManagement: CSCPresent
+              CSCValue: "123"
+          cardCountryCode: "643"
+          CardBrand:
+            identification: VISA
+            schemeName: schemeName
+            issuer: issuer
+          additionalCardData: additionalCardData
+    AccountProduct:
+      required:
+      - productName
+      - productType
+      type: object
+      properties:
+        accountId:
+          maxLength: 40
+          type: string
+          description: "Уникальный и неизменный идентификатор, используемый для ид\
+            ентификации ресурса Счета"
+          example: "1002001"
+        productId:
+          maxLength: 40
+          minLength: 1
+          type: string
+          description: "Уникальный идентификатор, присвоенный финансовым учреждени\
+            ем внутри компании каждому из банковских  продуктов"
+          example: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+        productName:
+          maxLength: 350
+          minLength: 1
+          type: string
+          description: "Название продукта, используемого в маркетинговых целях"
+          example: МойПродукт
+        productType:
+          $ref: '#/components/schemas/ProductType'
+        productVersion:
+          pattern: "^[1-9]\\d*(\\.[1-9]\\d*)*$"
+          type: string
+          description: Версия продукта
+        Brand:
+          $ref: '#/components/schemas/Brand'
+        ProductDetails:
+          $ref: '#/components/schemas/ProductDetails'
+        FeesCharges:
+          type: array
+          description: "Информация о комиссиях и сборах, в том числе по тарифу обс\
+            луживания"
+          items:
+            $ref: '#/components/schemas/OtherFeesCharges'
+        SupplementaryData:
+          $ref: '#/components/schemas/PaymentCards4'
+      description: Общая информация о продукте кредитной организации связанной со
+        счетом Пользователя
+      example:
+        Brand:
+          brandName: МойБанкГрупп
+          applicationUri: https://mybank.ru/products/credit-card/applay
+        SupplementaryData:
+          PaymentCards:
+          - PlainCardData:
+              expiryDate: null
+              serviceCode: "121"
+              PAN: '*0001'
+              cardSequenceNumber: "01"
+              effectiveDate: effectiveDate
+              TrackData:
+              - trackNumber: trackNumber
+                trackValue: trackValue
+              - trackNumber: trackNumber
+                trackValue: trackValue
+              CardSecurityCode:
+                CSCManagement: CSCPresent
+                CSCValue: "123"
+            cardCountryCode: "643"
+            CardBrand:
+              identification: VISA
+              schemeName: schemeName
+              issuer: issuer
+            additionalCardData: additionalCardData
+          - PlainCardData:
+              expiryDate: null
+              serviceCode: "121"
+              PAN: '*0001'
+              cardSequenceNumber: "01"
+              effectiveDate: effectiveDate
+              TrackData:
+              - trackNumber: trackNumber
+                trackValue: trackValue
+              - trackNumber: trackNumber
+                trackValue: trackValue
+              CardSecurityCode:
+                CSCManagement: CSCPresent
+                CSCValue: "123"
+            cardCountryCode: "643"
+            CardBrand:
+              identification: VISA
+              schemeName: schemeName
+              issuer: issuer
+            additionalCardData: additionalCardData
+        accountId: "1002001"
+        productVersion: productVersion
+        productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+        ProductDetails:
+          comments: comments
+          active: true
+          feeFreeLength: 3
+          feeFreeLengthPeriod: Месяц
+        FeesCharges:
+        - FeeChargeCap:
+          - cappingPeriod: null
+            feeCapAmount: null
+            feeCapOccurrence: 0
+            minMaxType: Minimum
+          - cappingPeriod: null
+            feeCapAmount: null
+            feeCapOccurrence: 0
+            minMaxType: Minimum
+          comments: comments
+          tariffName: Лучший тариф
+          FeeChargeDetail:
+          - feeAmount: "200.00"
+            applicationFrequency: Monthly
+            calculationFrequency: null
+            feeRate: "5"
+          - feeAmount: "200.00"
+            applicationFrequency: Monthly
+            calculationFrequency: null
+            feeRate: "5"
+        - FeeChargeCap:
+          - cappingPeriod: null
+            feeCapAmount: null
+            feeCapOccurrence: 0
+            minMaxType: Minimum
+          - cappingPeriod: null
+            feeCapAmount: null
+            feeCapOccurrence: 0
+            minMaxType: Minimum
+          comments: comments
+          tariffName: Лучший тариф
+          FeeChargeDetail:
+          - feeAmount: "200.00"
+            applicationFrequency: Monthly
+            calculationFrequency: null
+            feeRate: "5"
+          - feeAmount: "200.00"
+            applicationFrequency: Monthly
+            calculationFrequency: null
+            feeRate: "5"
+        productName: МойПродукт
+        productType: loanIndividual
+    AccountProductResponse:
+      required:
+      - Data
+      type: object
+      properties:
+        Data:
+          $ref: '#/components/schemas/AccountProductResponse_Data'
+      description: Подробная информация о банковском продукте на счете клиента
+      example:
+        Data:
+          Product:
+            Brand:
+              brandName: МойБанкГрупп
+              applicationUri: https://mybank.ru/products/credit-card/applay
+            SupplementaryData:
+              PaymentCards:
+              - PlainCardData:
+                  expiryDate: null
+                  serviceCode: "121"
+                  PAN: '*0001'
+                  cardSequenceNumber: "01"
+                  effectiveDate: effectiveDate
+                  TrackData:
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  CardSecurityCode:
+                    CSCManagement: CSCPresent
+                    CSCValue: "123"
+                cardCountryCode: "643"
+                CardBrand:
+                  identification: VISA
+                  schemeName: schemeName
+                  issuer: issuer
+                additionalCardData: additionalCardData
+              - PlainCardData:
+                  expiryDate: null
+                  serviceCode: "121"
+                  PAN: '*0001'
+                  cardSequenceNumber: "01"
+                  effectiveDate: effectiveDate
+                  TrackData:
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  CardSecurityCode:
+                    CSCManagement: CSCPresent
+                    CSCValue: "123"
+                cardCountryCode: "643"
+                CardBrand:
+                  identification: VISA
+                  schemeName: schemeName
+                  issuer: issuer
+                additionalCardData: additionalCardData
+            accountId: "1002001"
+            productVersion: productVersion
+            productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+            ProductDetails:
+              comments: comments
+              active: true
+              feeFreeLength: 3
+              feeFreeLengthPeriod: Месяц
+            FeesCharges:
+            - FeeChargeCap:
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              comments: comments
+              tariffName: Лучший тариф
+              FeeChargeDetail:
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+            - FeeChargeCap:
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              comments: comments
+              tariffName: Лучший тариф
+              FeeChargeDetail:
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+            productName: МойПродукт
+            productType: loanIndividual
+    AccountsProductListResponse:
+      required:
+      - Data
+      type: object
+      properties:
+        Data:
+          $ref: '#/components/schemas/AccountsProductListResponse_Data'
+      additionalProperties: false
+      description: Список банковских продуктов на по счетам Пользователя
+      example:
+        Data:
+          Products:
+          - Brand:
+              brandName: МойБанкГрупп
+              applicationUri: https://mybank.ru/products/credit-card/applay
+            SupplementaryData:
+              PaymentCards:
+              - PlainCardData:
+                  expiryDate: null
+                  serviceCode: "121"
+                  PAN: '*0001'
+                  cardSequenceNumber: "01"
+                  effectiveDate: effectiveDate
+                  TrackData:
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  CardSecurityCode:
+                    CSCManagement: CSCPresent
+                    CSCValue: "123"
+                cardCountryCode: "643"
+                CardBrand:
+                  identification: VISA
+                  schemeName: schemeName
+                  issuer: issuer
+                additionalCardData: additionalCardData
+              - PlainCardData:
+                  expiryDate: null
+                  serviceCode: "121"
+                  PAN: '*0001'
+                  cardSequenceNumber: "01"
+                  effectiveDate: effectiveDate
+                  TrackData:
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  CardSecurityCode:
+                    CSCManagement: CSCPresent
+                    CSCValue: "123"
+                cardCountryCode: "643"
+                CardBrand:
+                  identification: VISA
+                  schemeName: schemeName
+                  issuer: issuer
+                additionalCardData: additionalCardData
+            accountId: "1002001"
+            productVersion: productVersion
+            productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+            ProductDetails:
+              comments: comments
+              active: true
+              feeFreeLength: 3
+              feeFreeLengthPeriod: Месяц
+            FeesCharges:
+            - FeeChargeCap:
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              comments: comments
+              tariffName: Лучший тариф
+              FeeChargeDetail:
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+            - FeeChargeCap:
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              comments: comments
+              tariffName: Лучший тариф
+              FeeChargeDetail:
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+            productName: МойПродукт
+            productType: loanIndividual
+          - Brand:
+              brandName: МойБанкГрупп
+              applicationUri: https://mybank.ru/products/credit-card/applay
+            SupplementaryData:
+              PaymentCards:
+              - PlainCardData:
+                  expiryDate: null
+                  serviceCode: "121"
+                  PAN: '*0001'
+                  cardSequenceNumber: "01"
+                  effectiveDate: effectiveDate
+                  TrackData:
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  CardSecurityCode:
+                    CSCManagement: CSCPresent
+                    CSCValue: "123"
+                cardCountryCode: "643"
+                CardBrand:
+                  identification: VISA
+                  schemeName: schemeName
+                  issuer: issuer
+                additionalCardData: additionalCardData
+              - PlainCardData:
+                  expiryDate: null
+                  serviceCode: "121"
+                  PAN: '*0001'
+                  cardSequenceNumber: "01"
+                  effectiveDate: effectiveDate
+                  TrackData:
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  - trackNumber: trackNumber
+                    trackValue: trackValue
+                  CardSecurityCode:
+                    CSCManagement: CSCPresent
+                    CSCValue: "123"
+                cardCountryCode: "643"
+                CardBrand:
+                  identification: VISA
+                  schemeName: schemeName
+                  issuer: issuer
+                additionalCardData: additionalCardData
+            accountId: "1002001"
+            productVersion: productVersion
+            productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+            ProductDetails:
+              comments: comments
+              active: true
+              feeFreeLength: 3
+              feeFreeLengthPeriod: Месяц
+            FeesCharges:
+            - FeeChargeCap:
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              comments: comments
+              tariffName: Лучший тариф
+              FeeChargeDetail:
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+            - FeeChargeCap:
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              - cappingPeriod: null
+                feeCapAmount: null
+                feeCapOccurrence: 0
+                minMaxType: Minimum
+              comments: comments
+              tariffName: Лучший тариф
+              FeeChargeDetail:
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+              - feeAmount: "200.00"
+                applicationFrequency: Monthly
+                calculationFrequency: null
+                feeRate: "5"
+            productName: МойПродукт
+            productType: loanIndividual
+    AccountProductResponse_Data:
+      type: object
+      properties:
+        Product:
+          $ref: '#/components/schemas/AccountProduct'
+      description: Раздел данных для информации о банковском продукте
+      example:
+        Product:
+          Brand:
+            brandName: МойБанкГрупп
+            applicationUri: https://mybank.ru/products/credit-card/applay
+          SupplementaryData:
+            PaymentCards:
+            - PlainCardData:
+                expiryDate: null
+                serviceCode: "121"
+                PAN: '*0001'
+                cardSequenceNumber: "01"
+                effectiveDate: effectiveDate
+                TrackData:
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                CardSecurityCode:
+                  CSCManagement: CSCPresent
+                  CSCValue: "123"
+              cardCountryCode: "643"
+              CardBrand:
+                identification: VISA
+                schemeName: schemeName
+                issuer: issuer
+              additionalCardData: additionalCardData
+            - PlainCardData:
+                expiryDate: null
+                serviceCode: "121"
+                PAN: '*0001'
+                cardSequenceNumber: "01"
+                effectiveDate: effectiveDate
+                TrackData:
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                CardSecurityCode:
+                  CSCManagement: CSCPresent
+                  CSCValue: "123"
+              cardCountryCode: "643"
+              CardBrand:
+                identification: VISA
+                schemeName: schemeName
+                issuer: issuer
+              additionalCardData: additionalCardData
+          accountId: "1002001"
+          productVersion: productVersion
+          productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+          ProductDetails:
+            comments: comments
+            active: true
+            feeFreeLength: 3
+            feeFreeLengthPeriod: Месяц
+          FeesCharges:
+          - FeeChargeCap:
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            comments: comments
+            tariffName: Лучший тариф
+            FeeChargeDetail:
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+          - FeeChargeCap:
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            comments: comments
+            tariffName: Лучший тариф
+            FeeChargeDetail:
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+          productName: МойПродукт
+          productType: loanIndividual
+    AccountsProductListResponse_Data:
+      type: object
+      properties:
+        Products:
+          type: array
+          description: Информация о продуктах по счетам Пользователя
+          items:
+            $ref: '#/components/schemas/AccountProduct'
+      description: Раздел данных для информации о банковском продукте
+      example:
+        Products:
+        - Brand:
+            brandName: МойБанкГрупп
+            applicationUri: https://mybank.ru/products/credit-card/applay
+          SupplementaryData:
+            PaymentCards:
+            - PlainCardData:
+                expiryDate: null
+                serviceCode: "121"
+                PAN: '*0001'
+                cardSequenceNumber: "01"
+                effectiveDate: effectiveDate
+                TrackData:
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                CardSecurityCode:
+                  CSCManagement: CSCPresent
+                  CSCValue: "123"
+              cardCountryCode: "643"
+              CardBrand:
+                identification: VISA
+                schemeName: schemeName
+                issuer: issuer
+              additionalCardData: additionalCardData
+            - PlainCardData:
+                expiryDate: null
+                serviceCode: "121"
+                PAN: '*0001'
+                cardSequenceNumber: "01"
+                effectiveDate: effectiveDate
+                TrackData:
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                CardSecurityCode:
+                  CSCManagement: CSCPresent
+                  CSCValue: "123"
+              cardCountryCode: "643"
+              CardBrand:
+                identification: VISA
+                schemeName: schemeName
+                issuer: issuer
+              additionalCardData: additionalCardData
+          accountId: "1002001"
+          productVersion: productVersion
+          productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+          ProductDetails:
+            comments: comments
+            active: true
+            feeFreeLength: 3
+            feeFreeLengthPeriod: Месяц
+          FeesCharges:
+          - FeeChargeCap:
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            comments: comments
+            tariffName: Лучший тариф
+            FeeChargeDetail:
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+          - FeeChargeCap:
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            comments: comments
+            tariffName: Лучший тариф
+            FeeChargeDetail:
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+          productName: МойПродукт
+          productType: loanIndividual
+        - Brand:
+            brandName: МойБанкГрупп
+            applicationUri: https://mybank.ru/products/credit-card/applay
+          SupplementaryData:
+            PaymentCards:
+            - PlainCardData:
+                expiryDate: null
+                serviceCode: "121"
+                PAN: '*0001'
+                cardSequenceNumber: "01"
+                effectiveDate: effectiveDate
+                TrackData:
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                CardSecurityCode:
+                  CSCManagement: CSCPresent
+                  CSCValue: "123"
+              cardCountryCode: "643"
+              CardBrand:
+                identification: VISA
+                schemeName: schemeName
+                issuer: issuer
+              additionalCardData: additionalCardData
+            - PlainCardData:
+                expiryDate: null
+                serviceCode: "121"
+                PAN: '*0001'
+                cardSequenceNumber: "01"
+                effectiveDate: effectiveDate
+                TrackData:
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                - trackNumber: trackNumber
+                  trackValue: trackValue
+                CardSecurityCode:
+                  CSCManagement: CSCPresent
+                  CSCValue: "123"
+              cardCountryCode: "643"
+              CardBrand:
+                identification: VISA
+                schemeName: schemeName
+                issuer: issuer
+              additionalCardData: additionalCardData
+          accountId: "1002001"
+          productVersion: productVersion
+          productId: 022eaab4-568b-4635-a5fb-fe91153e6cd6
+          ProductDetails:
+            comments: comments
+            active: true
+            feeFreeLength: 3
+            feeFreeLengthPeriod: Месяц
+          FeesCharges:
+          - FeeChargeCap:
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            comments: comments
+            tariffName: Лучший тариф
+            FeeChargeDetail:
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+          - FeeChargeCap:
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            - cappingPeriod: null
+              feeCapAmount: null
+              feeCapOccurrence: 0
+              minMaxType: Minimum
+            comments: comments
+            tariffName: Лучший тариф
+            FeeChargeDetail:
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+            - feeAmount: "200.00"
+              applicationFrequency: Monthly
+              calculationFrequency: null
+              feeRate: "5"
+          productName: МойПродукт
+          productType: loanIndividual
+  responses:
+    "200GetAccounts":
+      description: "Полный список счетов (с идентификаторами accountId), которые б\
+        ыли авторизованы пользователем на стороне ППИУ"
+      headers:
+        x-fapi-interaction-id:
+          description: "RFC4122 UID, используемый в качестве идентификатора коррел\
+            яции. Если необходимо, то ППИУ передает обратно значение идентификатор\
+            а корреляции в заголовке ответа x-fapi-interaction-id."
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        x-jws-signature:
+          description: Отделяемая подпись полезной нагрузки в формате JWS
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountResponse'
+    "400Error":
+      description: "Запрос имеет неверное, отсутствующее или несовместимое тело JSON,\
+        \ параметры URL или поля заголовка"
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OBRUErrorResponse'
+    "401Error":
+      description: Заголовок авторизации отсутствует или неверный токен
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+    "403Error":
+      description: Токен имеет неверную область действия или была нарушена политика
+        безопасности
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OBRUErrorResponse'
+    "404Error":
+      description: "Сторонний Поставщик пытается получить ресурс, который указан в\
+        \ спецификации, но не реализован на стороне ППИУ, либо ресурс, который не\
+        \ определен"
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+    "405Error":
+      description: "Сторонний Поставщик пытается получить доступ к ресурсу с помощ\
+        ью метода, который не поддерживается"
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+    "406Error":
+      description: "Запрос содержал параметр заголовка Accept, отличный от разреше\
+        нных media types, и набор символов, отличный от UTF-8"
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+    "429Error":
+      description: "Операция была отклонена, так как слишком много запросов было с\
+        делано в течение определенного периода времени"
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+        Retry-After:
+          style: simple
+          explode: false
+          schema:
+            type: string
+    InternalError:
+      description: Внутренняя ошибка сервера
+      headers:
+        x-fapi-interaction-id:
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OBRUErrorResponse'
+    "200GetAccountsaccountId":
+      description: "Полный список счетов (с идентификаторами accountId), которые б\
+        ыли авторизованы пользователем на стороне ППИУ"
+      headers:
+        x-fapi-interaction-id:
+          description: "RFC4122 UID, используемый в качестве идентификатора коррел\
+            яции. Если необходимо, то ППИУ передает обратно значение идентификатор\
+            а корреляции в заголовке ответа x-fapi-interaction-id."
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        x-jws-signature:
+          description: Отделяемая подпись полезной нагрузки в формате JWS
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountResponse'
+    "200GetAccountsaccountIdBalances":
+      description: Получение информации об остатке на счете с идентификатором accountId
+      headers:
+        x-fapi-interaction-id:
+          description: "RFC4122 UID, используемый в качестве идентификатора коррел\
+            яции. Если необходимо, то ППИУ передает обратно значение идентификатор\
+            а корреляции в заголовке ответа x-fapi-interaction-id."
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        x-jws-signature:
+          description: Отделяемая подпись полезной нагрузки в формате JWS
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BalanceResponse'
+    "200GetBalances":
+      description: "Получение информации об остатке по всем банковским счетам, кот\
+        орые Пользователь авторизовал с помощью согласия"
+      headers:
+        x-fapi-interaction-id:
+          description: "RFC4122 UID, используемый в качестве идентификатора коррел\
+            яции. Если необходимо, то ППИУ передает обратно значение идентификатор\
+            а корреляции в заголовке ответа x-fapi-interaction-id."
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        x-jws-signature:
+          description: Отделяемая подпись полезной нагрузки в формате JWS
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BalanceResponse'
+    "200GetAccountsaccountIdTransactions":
+      description: Конечная точка извлекает ресурс операции по счету с идентификатором
+        accountId
+      headers:
+        x-fapi-interaction-id:
+          description: "RFC4122 UID, используемый в качестве идентификатора коррел\
+            яции. Если необходимо, то ППИУ передает обратно значение идентификатор\
+            а корреляции в заголовке ответа x-fapi-interaction-id."
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        x-jws-signature:
+          description: Отделяемая подпись полезной нагрузки в формате JWS
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransactionResponse'
+    "200GetTransactions":
+      description: "Конечная точка позволяет получить список операций по счету по\
+        \ всем счетам, которые авторизованы пользователем с помощью согласия"
+      headers:
+        x-fapi-interaction-id:
+          description: "RFC4122 UID, используемый в качестве идентификатора коррел\
+            яции. Если необходимо, то ППИУ передает обратно значение идентификатор\
+            а корреляции в заголовке ответа x-fapi-interaction-id."
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        x-jws-signature:
+          description: Отделяемая подпись полезной нагрузки в формате JWS
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransactionResponse'
+    "200AcoountProductRead":
+      description: Запрос успешно выполнен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountProductResponse'
+    "500Error":
+      description: Что-то пошло не так на стороне Стороннего поставщика.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OBRUErrorResponse'
+    "200AcoountsProductListRead":
+      description: Запрос успешно выполнен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AccountsProductListResponse'
+  parameters:
+    page:
+      name: page
+      in: query
+      description: Номер страницы
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        default: 0
+    x-fapi-auth-date:
+      name: x_fapi_auth_date
+      in: header
+      description: "Время последнего входа Пользователя в систему с TPP. Значение\
+        \ предоставляется в виде HTTP-date, как в разделе 7.1.1.1 [RFC7231]. Напри\
+        мер, x-fapi-auth-date: Mon, 26 Aug 2019 12:23:11 GMT"
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+      example: "Mon, 26 Aug 2019 12:23:11 GMT"
+    x-fapi-customer-ip-address:
+      name: x_fapi_customer_ip_address
+      in: header
+      description: "IP-адрес Пользователя, если Пользователь в данный момент подкл\
+        ючен к Стороннему Поставщику (залогинен в приложении Стороннего Поставщика\
+        )."
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+    x-fapi-interaction-id:
+      name: x_fapi_interaction_id
+      in: header
+      description: "RFC4122 UID, используемый в качестве идентификатора корреляции\
+        . Если необходимо, то ППИУ передает обратно значение идентификатора коррел\
+        яции в заголовке ответа x-fapi-interaction-id."
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+    x-customer-user-agent:
+      name: x_customer_user_agent
+      in: header
+      description: "В заголовке указывается тип устройства (user-agent), который и\
+        спользует Пользователь. Сторонний Поставщик может заполнить это поле значе\
+        нием типа устройства (user-agent), указанным Пользователем. Если Пользоват\
+        ель использует мобильное приложение Стороннего Поставщика, Сторонний Поста\
+        вщик проверяет, что строка типа устройства (user-agent) отличается от стро\
+        ки типа устройства (user-agent) на основе браузера."
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+      example: ""
+    accountId:
+      name: accountId
+      in: path
+      description: Идентификатор счета
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+      example: 1002001
+    fromBookingDateTime:
+      name: fromBookingDateTime
+      in: query
+      description: Дата и время начала фильтрации списка операций по счету
+      required: false
+      style: form
+      explode: true
+      schema:
+        $ref: '#/components/schemas/ISODateTime'
+    toBookingDateTime:
+      name: toBookingDateTime
+      in: query
+      description: Дата и время окончания фильтрации списка операций по счету
+      required: false
+      style: form
+      explode: true
+      schema:
+        $ref: '#/components/schemas/ISODateTime'
+  securitySchemes:
+    TPPOAuth2Security:
+      type: oauth2
+      description: Сторонний поставщик использует поток авторизации сlient сredentional
+        для доступа к ресурсам ППИУ
+      flows:
+        clientCredentials:
+          tokenUrl: https://localhost:8080/as/aft/connect/token
+          scopes:
+            account: Доступ к информации о счете
+      x-tokenInfoFunc: swagger_server.controllers.authorization_controller.check_TPPOAuth2Security
+      x-scopeValidateFunc: swagger_server.controllers.authorization_controller.validate_scope_TPPOAuth2Security
+    PSUOAuth2Security:
+      type: oauth2
+      description: "Поток авторизации, требующий получения Сторонним поставщиком а\
+        вторизации конечного Пользователя на доступ к ресурсам на сервере авториза\
+        ции ППИУ."
+      flows:
+        authorizationCode:
+          authorizationUrl: https://localhost:8080/as/aft/connect/authorize
+          tokenUrl: https://localhost:8080/as/aft/connect/token
+          scopes:
+            account: Доступ к информации о счете
+      x-tokenInfoFunc: swagger_server.controllers.authorization_controller.check_PSUOAuth2Security
+      x-scopeValidateFunc: swagger_server.controllers.authorization_controller.validate_scope_PSUOAuth2Security
+

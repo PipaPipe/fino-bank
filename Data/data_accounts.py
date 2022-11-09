@@ -2,7 +2,8 @@ import random, string
 
 from swagger_server.models import Account, AccountStatus, AccountType, DataAccountResponse, AccountResponse, \
     CashAccount, PartyIdentification, CreditDebitCode, DataBalanceResponse, BalanceResponse, Balance, \
-    ActiveOrHistoricCurrencyAndAmount, ActiveOrHistoricCurrencyCode
+    ActiveOrHistoricCurrencyAndAmount, ActiveOrHistoricCurrencyCode, BranchAndFinancialInstitutionIdentification, \
+    FinancialInstitutionIdentificationCode
 
 
 def gen_id(start=100000, stop=199999):
@@ -22,20 +23,27 @@ def get_account_description(start=12):
     return ''.join([random.choice(letters) for _ in range(start)])
 
 
+
+def get_scheme_name():
+    return random.choice([FinancialInstitutionIdentificationCode.BIC,
+                          FinancialInstitutionIdentificationCode.BICFI])
+
+
+
 def get_account_details():
     cash_accounts_list = []
     for _ in range(3):
         cash_account = CashAccount()
         cash_account._name = get_account_description(20)
-        cash_account._scheme_name = get_account_description(10)
+        cash_account._scheme_name = get_scheme_name()
         cash_account._identification = gen_id()
         cash_accounts_list.append(cash_account)
     return cash_accounts_list
 
 
 def get_birthday():
-    day = random.randint(0, 31)
-    month = random.randint(0, 12)
+    day = random.randint(1, 31)
+    month = random.randint(1, 12)
     year = random.randint(1970, 2022)
     return '.'.join([str(day), str(month), str(year)])
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import Data.data_accounts
 import connexion
-
 from connexion import request
+
+import Data.data_accounts
 from swagger_server import encoder
 
 
@@ -13,26 +13,31 @@ def main():
                 arguments={'title': 'Получение информации о счете клиента третьей стороной'},
                 pythonic_params=True)
 
-    @app.route('/open-banking/v1.3/aisp/vrp-payments')
+    @app.route('/open-banking/v1.3/aisp/vrp-payments', methods=['POST', ])
     def vrp_payments():
         js = request.json
-        debetor_id = js['debetor_id']
+        debtor_id = js['debtor_id']
         creditor_id = js['creditor_id']
         amount = js['amount']
-
-        flag = False
+        print(debtor_id)
         for n in Data.data_accounts.list_balance.data.balance:
-            if (str(n.account_id) == debetor_id and n.amount.amount >= amount):
-                if (n.amount.amount < amount):
-                    return 'money not sufficient', 400
+            print(n.amount)
+            if str(n.account_id) == str(debtor_id):
+                print(n.amount.amount, amount)
+                if n.amount.amount < float(amount):
+                    print('return')
+                    return 'money not sufficient', 403
                 n.amount.amount -= amount
                 break
         else:
-            return 'DEBETOR NOT FOUND', 400
+            return 'debtor not found', 400
+
         for j in Data.data_accounts.list_balance.data.balance:
-            if (str(n.account_id) == creditor_id):
-                j.amount.amount += amount
+            if str(j.account_id) == str(creditor_id):
+                j.amount.amount += float(amount)
                 return 'OK', 200
+        else:
+            return 'creditor not found', 400
 
     app.run(port=8080)
 

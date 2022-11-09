@@ -556,9 +556,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OBRUErrorResponse'
-      security:
-      - PSUOAuth2Security:
-        - account
+#      security:
+#      - PSUOAuth2Security:
+#        - account
       x-openapi-router-controller: swagger_server.controllers.balances_controller
   /balances:
     get:
@@ -736,9 +736,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OBRUErrorResponse'
-      security:
-      - PSUOAuth2Security:
-        - account
+#      security:
+#      - PSUOAuth2Security:
+#        - account
       x-openapi-router-controller: swagger_server.controllers.balances_controller
   /accounts/{accountId}/transactions:
     get:
@@ -941,9 +941,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OBRUErrorResponse'
-      security:
-      - PSUOAuth2Security:
-        - account
+#      security:
+#      - PSUOAuth2Security:
+#        - account
       x-openapi-router-controller: swagger_server.controllers.transactions_controller
   /transactions:
     get:

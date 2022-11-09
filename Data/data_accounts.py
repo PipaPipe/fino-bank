@@ -1,7 +1,8 @@
 import random, string
 
 from swagger_server.models import Account, AccountStatus, AccountType, DataAccountResponse, AccountResponse, \
-    CashAccount, PartyIdentification
+    CashAccount, PartyIdentification, CreditDebitCode, DataBalanceResponse, BalanceResponse, Balance, \
+    ActiveOrHistoricCurrencyAndAmount, ActiveOrHistoricCurrencyCode
 
 
 def gen_id(start=100000, stop=199999):
@@ -67,12 +68,43 @@ def gen_accounts(num_accounts=10):
     return ar
 
 
+def gen_amount():
+    return random.randint(0,100000)
+
+
+def get_credit_debit_code():
+    return random.choice([CreditDebitCode.DEBIT, CreditDebitCode.CREDIT])
+
+
+def get_amount():
+    amount = ActiveOrHistoricCurrencyAndAmount()
+    amount._amount = gen_amount()
+    amount._currency = ActiveOrHistoricCurrencyCode()
+    return amount
+
+
+def gen_balances(num_balances=10):
+    DataBalResp = DataBalanceResponse()
+    DataBalResp.balance = []
+
+    ba = BalanceResponse()
+
+    for n in range(num_balances):
+        bal = Balance()
+        bal.account_id = n+1
+        bal.amount = get_amount()
+        bal.credit_debit_indicator = get_credit_debit_code()
+        DataBalResp.balance.append(bal)
+
+    ba.data = DataBalResp
+    return ba
+
+
 def get_account_id(in_id):
     DataAcResp = DataAccountResponse()
     DataAcResp.account = []
 
     ar = AccountResponse()
-
 
     for i in list_accounts.data.account:
         print(i.account_id)
@@ -82,6 +114,20 @@ def get_account_id(in_id):
             return ar
 
 
+def get_balance_id(in_id):
+    DataBalResp = DataBalanceResponse()
+    DataBalResp.balance = []
+
+    ba = BalanceResponse()
+
+    for i in list_balance.data.balance:
+        if str(i.account_id) == (in_id):
+            DataBalResp.balance.append(i)
+            ba.data = DataBalResp
+            return ba
+
+
+list_balance = gen_balances()
 list_accounts = gen_accounts()
 
 # acc.servicer = get_servicer()

@@ -26,7 +26,7 @@ def get_accounts(page=None, x_fapi_auth_date=None, x_fapi_customer_ip_address=No
 
     :rtype: AccountResponse
     """
-    return gen_accounts()
+    return list_accounts
 
 
 def get_accountsaccount_id(account_id, x_fapi_auth_date=None, x_fapi_customer_ip_address=None, x_fapi_interaction_id=None, x_customer_user_agent=None):  # noqa: E501

@@ -4,6 +4,7 @@ import six
 from swagger_server.models.balance_response import BalanceResponse  # noqa: E501
 from swagger_server.models.obru_error_response import OBRUErrorResponse  # noqa: E501
 from swagger_server import util
+from Data.data_accounts import list_balance, get_balance_id
 
 
 def get_accountsaccount_id_balances(account_id, x_fapi_auth_date=None, x_fapi_customer_ip_address=None, x_fapi_interaction_id=None, x_customer_user_agent=None):  # noqa: E501
@@ -24,7 +25,7 @@ def get_accountsaccount_id_balances(account_id, x_fapi_auth_date=None, x_fapi_cu
 
     :rtype: BalanceResponse
     """
-    return 'do some magic!'
+    return get_balance_id(account_id)
 
 
 def get_balances(page=None, x_fapi_auth_date=None, x_fapi_customer_ip_address=None, x_fapi_interaction_id=None, x_customer_user_agent=None):  # noqa: E501
@@ -45,4 +46,4 @@ def get_balances(page=None, x_fapi_auth_date=None, x_fapi_customer_ip_address=No
 
     :rtype: BalanceResponse
     """
-    return 'do some magic!'
+    return list_balance

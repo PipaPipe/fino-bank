@@ -91,10 +91,14 @@ def get_credit_debit_code():
     return random.choice([CreditDebitCode.DEBIT, CreditDebitCode.CREDIT])
 
 
+def get_currency():
+    return random.choice(['RUB', 'USD', 'EUR'])
+
+
 def get_amount():
     amount = ActiveOrHistoricCurrencyAndAmount()
     amount._amount = gen_amount()
-    amount._currency = ActiveOrHistoricCurrencyCode()
+    amount._currency = get_currency()
     return amount
 
 

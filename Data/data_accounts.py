@@ -33,6 +33,13 @@ def get_account_details():
     return cash_accounts_list
 
 
+def get_birthday():
+    day = random.randint(0, 31)
+    month = random.randint(0, 12)
+    year = random.randint(1970, 2022)
+    return '.'.join([str(day), str(month), str(year)])
+
+
 def get_owner():
     names = ["Mike", "John", 'Bob', 'ilya', 'max', 'kirill', 'grigoriy']
     countries = ['RU', 'EU', 'CH', 'UK']
@@ -40,7 +47,7 @@ def get_owner():
     party_id._name = random.choice(names)
     party_id._mobile_number = ''.join([random.choice(string.digits) for _ in range(11)])
     party_id._country_of_residence = random.choice(countries)
-    party_id._birth_date = 2002
+    party_id._birth_date = get_birthday()
     party_id._identification = gen_id()
     return party_id
 

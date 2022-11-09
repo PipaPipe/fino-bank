@@ -7,8 +7,8 @@ from swagger_server.models import Account, AccountStatus, AccountType, DataAccou
     FinancialInstitutionIdentificationCode
 
 
-def gen_id(start=100000, stop=199999):
-    return random.randint(start, stop)
+def gen_id():
+    str = ''.join([str(random.choice(string.digits)) for _ in range(20)])
 
 
 def get_status():
@@ -24,11 +24,9 @@ def get_account_description(start=12):
     return ''.join([random.choice(letters) for _ in range(start)])
 
 
-
 def get_scheme_name():
     return random.choice([FinancialInstitutionIdentificationCode.BIC,
                           FinancialInstitutionIdentificationCode.BICFI])
-
 
 
 def get_account_details():
@@ -57,7 +55,8 @@ def get_birthday():
 
 
 def get_owner():
-    names = ["Mike", "John", 'Bob', 'ilya', 'max', 'kirill', 'grigoriy']
+    names = ["Mike", "John", 'Bob', 'Jane', 'Max',
+             'Kirill', 'Grigoriy', 'Pavel', 'Kolya']
     countries = ['RU', 'EU', 'CH', 'UK']
     party_id = PartyIdentification()
     party_id._name = random.choice(names)

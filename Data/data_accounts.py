@@ -1,3 +1,4 @@
+import datetime
 import random, string
 
 from swagger_server.models import Account, AccountStatus, AccountType, DataAccountResponse, AccountResponse, \
@@ -43,8 +44,15 @@ def get_account_details():
 
 def get_birthday():
     day = random.randint(1, 31)
+    if day < 10:
+        day = '0' + str(day)
     month = random.randint(1, 12)
+    if month < 10:
+        month = '0' + str(month)
     year = random.randint(1970, 2022)
+    if (int(datetime.datetime.now().year) - year < 18):
+        return None
+
     return '.'.join([str(day), str(month), str(year)])
 
 

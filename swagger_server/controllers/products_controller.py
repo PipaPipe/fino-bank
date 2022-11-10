@@ -5,6 +5,7 @@ from swagger_server.models.account_product_response import AccountProductRespons
 from swagger_server.models.accounts_product_list_response import AccountsProductListResponse  # noqa: E501
 from swagger_server.models.obru_error_response import OBRUErrorResponse  # noqa: E501
 from swagger_server import util
+from Data.data_products import list_products, get_product_id
 
 
 def get_account_account_id_product(account_id, page=None, x_fapi_auth_date=None, x_fapi_customer_ip_address=None, x_fapi_interaction_id=None, x_customer_user_agent=None):  # noqa: E501
@@ -27,7 +28,7 @@ def get_account_account_id_product(account_id, page=None, x_fapi_auth_date=None,
 
     :rtype: AccountProductResponse
     """
-    return 'do some magic!'
+    return get_product_id(account_id)
 
 
 def get_accounts_product_list(page=None, x_fapi_auth_date=None, x_fapi_customer_ip_address=None, x_fapi_interaction_id=None, x_customer_user_agent=None):  # noqa: E501
@@ -48,4 +49,4 @@ def get_accounts_product_list(page=None, x_fapi_auth_date=None, x_fapi_customer_
 
     :rtype: AccountsProductListResponse
     """
-    return 'do some magic!'
+    return list_products

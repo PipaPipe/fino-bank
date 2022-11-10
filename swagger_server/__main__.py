@@ -30,7 +30,7 @@ def main():
 
         for j in Data.data_accounts.list_balance.data.balance:
             if str(j.account_id) == str(creditor_id):
-                j.amount.amount += float(amount)
+                j.amount.amount += amount
                 return 'OK', 200
         else:
             return 'creditor not found', 400

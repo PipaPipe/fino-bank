@@ -18,14 +18,10 @@ def main():
         js = request.json
         debtor_id = js['debtor_id']
         creditor_id = js['creditor_id']
-        amount = js['amount']
-        print(debtor_id)
+        amount = float(js['amount'])
         for n in Data.data_accounts.list_balance.data.balance:
-            print(n.amount)
             if str(n.account_id) == str(debtor_id):
-                print(n.amount.amount, amount)
                 if n.amount.amount < float(amount):
-                    print('return')
                     return 'money not sufficient', 403
                 n.amount.amount -= amount
                 break
